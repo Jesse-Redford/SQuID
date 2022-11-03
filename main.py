@@ -245,7 +245,7 @@ if st.checkbox('Single Descriptor Analysis'):
     show_train_hist = st.checkbox('-overlay histogram data (training set)')
     for i,d in enumerate(data):
         c = next(palette)
-        sns.kdeplot(d, shade=True, label=labels[i], ax=ax,color=c)
+        sns.kdeplot(d, fill=True, label=labels[i], ax=ax,color=c)
         if show_train_hist:
             sns.histplot(data=d, label=labels[i], ax=ax, color=c)
 
@@ -258,7 +258,7 @@ if st.checkbox('Single Descriptor Analysis'):
 
     if st.checkbox('-overlay pdf of test data'):
         for i, d in enumerate(test_data):
-            sns.kdeplot(d, shade=False, label=test_labels[i]+'(test)',linestyle='--', ax=ax)
+            sns.kdeplot(d, fill=False, label=test_labels[i]+'(test)',linestyle='--', ax=ax)
 
     ax.axvline(threshold, 0, 1, color="k", linestyle="dashed", linewidth=1)
     min_ylim, max_ylim = plt.ylim()
@@ -369,7 +369,6 @@ if st.button('Evaluate Classifer Using 5-Fold Validation Over A Varitey of Train
             clf = models[classifer]
             cv = StratifiedShuffleSplit(n_splits=n, test_size=test_percentage, random_state=0)
             scores = cross_val_score(clf, models['x_data'], models['y_data'], cv=cv)
-            print(scores)
             split = str(round(1-test_percentage,2)) + '/' + str(round(test_percentage,2))
             avgs.append(scores.mean()); stds.append(scores.std()); splits.append(split)
         plt.xticks(range(len(splits)), splits,rotation=45)
