@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 
 # Classifcation Metrics and Classifiers
-import sklearn
 from sklearn import tree
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix
