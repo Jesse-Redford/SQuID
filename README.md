@@ -9,7 +9,7 @@ The SQuID interface provides a systematic and interpretable approach for develop
 
 Try out the beta version at the link below.
 
-https://jesse-redford-squid-main-vjfi0y.streamlit.app/
+https://jesse-redford-squid-main-otrfh7.streamlit.app/
 
 ### Need Help?
 
