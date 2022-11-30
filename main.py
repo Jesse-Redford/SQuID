@@ -22,7 +22,6 @@ plt.rcParams['xtick.major.pad'] = '2'
 plt.rcParams['ytick.major.pad'] = '2'
 plt.rcParams['axes.labelpad'] = '2'
 
-
 def replace_text(obj):
     if type(obj) == matplotlib.text.Annotation:
         txt = obj.get_text()
@@ -32,7 +31,6 @@ def replace_text(obj):
         else:
             obj.set_text(txts[-1])
     return obj
-
 
 def split_data(data_df, split=(.5, .25, .25)):
     training = split[0] + split[1]
@@ -46,7 +44,6 @@ def split_data(data_df, split=(.5, .25, .25)):
         frac=validation, replace=False, random_state=1) for class_label in data_df.label.unique()])
     data_df.loc[df_val.index, 'category'] = 'validate'
     return data_df
-
 
 class SDT:
     def __init__(self, tabular_dataset=None, split=(.25, .25, .5)):
@@ -64,10 +61,8 @@ class SDT:
         self.data = self.dataset.loc[self.dataset['category'].isin(['train', 'validate', 'test'])]
 
     def calculate_dprimes(self):
-        dprime_scores = []
         combinations = []
         for feature in self.selected_parameters:
-            dprime = 0
             class_dictionary = {}
             for i, label_i in enumerate(self.selected_labels[:-1]):
                 for label_j in self.selected_labels[i + 1:]:
@@ -75,13 +70,9 @@ class SDT:
                     uj = self.training_data[self.training_data['label'] == label_j][feature].mean()
                     sigmai = self.training_data[self.training_data['label'] == label_i][feature].std()
                     sigmaj = self.training_data[self.training_data['label'] == label_j][feature].std()
-                    dprime += np.abs((np.max([ui, uj]) - np.min([ui, uj])) / np.sqrt((sigmai ** 2 + sigmaj ** 2) / 2))
-                    class_dictionary[label_i + '_vs_' + label_j] = np.abs(
-                        (np.max([ui, uj]) - np.min([ui, uj])) / np.sqrt((sigmai ** 2 + sigmaj ** 2) / 2))
+                    dprime = np.abs( (ui-uj) / np.sqrt( (sigmai ** 2 + sigmaj ** 2) / 2) )
+                    class_dictionary[label_i + '_vs_' + label_j] = dprime
             combinations.append(class_dictionary)
-            n = len(self.selected_labels)
-            coeff = 1 / (np.math.factorial(n) / (np.math.factorial(2) * np.math.factorial(n - 2)))
-            dprime_scores.append((coeff * dprime))
 
         self.dprime_df = pd.DataFrame(combinations, index=self.selected_parameters)
 
@@ -139,12 +130,77 @@ class SDT:
                                               right_on='parameters')
 
 
+    def get_summary(self):
+        tasks = list(itertools.combinations(self.selected_labels, 2))
+        D = []
+        A = []
+        dfs = []
+        for task in tasks:
+            label_i, label_j = task
+            dprimes = []
+            accs = []
+            for feature in self.selected_parameters:
+
+                # compute dprime for feature based on training data
+                ui = self.training_data[self.training_data['label'] == label_i][feature].mean()
+                uj = self.training_data[self.training_data['label'] == label_j][feature].mean()
+                sigmai = self.training_data[self.training_data['label'] == label_i][feature].std()
+                sigmaj = self.training_data[self.training_data['label'] == label_j][feature].std()
+                dprime = np.abs((np.max([ui, uj]) - np.min([ui, uj])) / np.sqrt((sigmai ** 2 + sigmaj ** 2) / 2))
+                dprimes.append(dprime)
+                D.append(dprime)
+
+                # compute acc for feature based on training/test data
+                threshold = float(self.training_data[feature].mean())
+                # compute parmameter average of each class label and store as 2 list
+                dd = self.training_data.groupby('label').agg(
+                    {feature: ['mean']})  # print('training sorted',dd[selected_parameter])
+                train_labels = list(dd[feature].index)
+                train_labels_means = list(dd[feature]['mean'])
+                # create list of tuples (class_label,parmeter value) = ('class1',.5)...('classN',2.4)
+                test_labels_and_values = list(zip(self.testing_data.label, self.testing_data[feature]))
+                # Loop through test lave
+                y_pred = []
+                y_true = []
+                for test_label, test_value in test_labels_and_values:
+                    absolute_difference_function = lambda list_value: abs(list_value - test_value)
+                    closest_value = min(train_labels_means, key=absolute_difference_function)
+                    if test_value > threshold and len(self.selected_labels) == 2:
+                        y_pred.append(train_labels[np.argmax(train_labels_means)])
+                    elif test_value < threshold and len(self.selected_labels) == 2:
+                        y_pred.append(train_labels[np.argmin(train_labels_means)])
+                    else:
+                        y_pred.append(train_labels[train_labels_means.index(closest_value)])
+                    y_true.append(test_label)
+                acc = accuracy_score(y_true, y_pred)
+                A.append(acc)
+                accs.append(acc)
+            df_task = pd.DataFrame({(label_i + '_vs_' + label_j, 'dprime'): dprimes,
+                                    (label_i + '_vs_' + label_j, 'acc'): accs})
+
+            dfs.append(df_task)
+
+        df = pd.concat(dfs, axis=1)
+        df.index = self.selected_parameters
+        st.dataframe(df)
+
+        d_vs_a = pd.DataFrame({'dprime': D, 'acc': A})
+        st.dataframe(d_vs_a)
+
+        fig,ax = plt.subplots()
+        d_vs_a.plot.scatter(x='dprime',y='acc')
+        st.pyplot(fig)
+
+        df.columns = df.columns.droplevel(0)
+        print(df)
+        df = df.stack().reset_index(level=0, drop=True)
+        df = df.to_frame()
+
 def plot_matrix(cm, classes, title):
     fig, ax = plt.subplots()
     ax = sns.heatmap(cm, cmap="jet", annot=True, xticklabels=classes, yticklabels=classes, cbar=False, fmt='.5g')
     ax.set(title=title, xlabel="Predicted Label", ylabel="True label")
     return fig
-
 
 def compute_metrics(confusion_matrix=None, class_labels=None):
     # https://stackoverflow.com/questions/31324218/scikit-learn-how-to-obtain-true-positive-true-negative-false-positive-and-fal
@@ -188,15 +244,15 @@ def compute_metrics(confusion_matrix=None, class_labels=None):
     df_metrics['label'] = class_labels
     return df_metrics
 
-
 # Maker Header for table information
 st.title('SQuID')
 st.subheader('Surface Quality and Inspection Descriptions')
 st.write('Created by Jesse Redford')
 
 uploaded_file = st.file_uploader("Upload Your Dataset In CSV Format (See Example for Proper Formatting)")
-if uploaded_file:
-    df = pd.read_csv(uploaded_file)
+if uploaded_file is not None:
+    df = pd.read_csv(uploaded_file,encoding='latin1')
+    #df = pd.read_pickle(uploaded_file)
     st.dataframe(df)
 else:
     n = 30
@@ -228,6 +284,10 @@ for i, col in enumerate(st.columns(len(sdt.selected_labels))):
     col.write(f"{label}")
     col.write(f"{train_examples}/{test_examples} ")
     col.write(f"train/test")
+
+if st.button('Get Summary'):
+    sdt.get_summary()
+
 
 if st.checkbox('Apply Feature Selection Algorithm To Automatically Select The Best Set of Parameters'):
     sdt.calculate_dprimes()
@@ -337,7 +397,9 @@ if st.checkbox('Evaluate D-prime Matrix'):
     df[df < co] = np.nan
 
     fig = plt.figure(figsize=(len(df.columns), len(df)))
-    sns.heatmap(df, cmap='coolwarm', linewidths=0.5, annot=True, vmin=co)
+
+    sns.heatmap(df, cmap=plt.cm.get_cmap('Set1_r', 3), linewidths=0.5, annot=True, vmin=co,vmax=6)
+    #sns.heatmap(df, cmap='coolwarm', linewidths=0.5, annot=True, vmin=co)
     st.pyplot(fig)
 
 if st.checkbox('Set Decision Tree Depth'):
