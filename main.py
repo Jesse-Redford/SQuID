@@ -12,6 +12,7 @@ from sklearn.model_selection import StratifiedShuffleSplit, cross_val_score
 
 # Plotting
 import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
 import seaborn as sns
 import matplotlib
 import itertools
@@ -288,17 +289,14 @@ for i, col in enumerate(st.columns(len(sdt.selected_labels))):
 if st.button('Get Summary'):
     sdt.get_summary()
 
+# Downselect or upselect parameters based on user input
+sdt.selected_parameters = st.multiselect('Select the parameters to use for analysis and classification:', sdt.parameters, sdt.selected_parameters)
+# Make sure sdt class internally has updated dataset based on user selected labels and parameters
+sdt.update_dataset()
 
 if st.checkbox('Apply Feature Selection Algorithm To Automatically Select The Best Set of Parameters'):
     sdt.calculate_dprimes()
-    sdt.selected_parameters = st.multiselect('Select The Parameters You Want to Analyze:', sdt.parameters,
-                                             sdt.best_parameters)
-    sdt.update_dataset()
-
-else:
-    sdt.selected_parameters = st.multiselect('Select the parameters to use for analysis and classification:',
-                                             sdt.parameters, sdt.selected_parameters)
-    # Make sure sdt class internally has updated dataset based on user selected labels and parameters
+    sdt.selected_parameters = st.multiselect('Downselect The Parameters You Want to Analyze:', sdt.parameters,sdt.best_parameters)
     sdt.update_dataset()
 
 if st.checkbox('Single Descriptor Analysis'):
@@ -397,8 +395,9 @@ if st.checkbox('Evaluate D-prime Matrix'):
     df[df < co] = np.nan
 
     fig = plt.figure(figsize=(len(df.columns), len(df)))
-
-    sns.heatmap(df, cmap=plt.cm.get_cmap('Set1_r', 3), linewidths=0.5, annot=True, vmin=co,vmax=6)
+    colormap = ListedColormap(["gray","darkorange", "green"])
+    #colormap = plt.cm.get_cmap('Set1_r', 3)
+    sns.heatmap(df, cmap=colormap, linewidths=0.5, annot=True, vmin=co,vmax=6)
     #sns.heatmap(df, cmap='coolwarm', linewidths=0.5, annot=True, vmin=co)
     st.pyplot(fig)
 
