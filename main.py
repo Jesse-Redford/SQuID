@@ -130,7 +130,7 @@ class SDT:
         return self.calculate_dprimes().merge(self.calculate_parameters_accuracy(), how='inner', left_on='parameters',
                                               right_on='parameters')
 
-
+    """ 
     def get_summary(self):
         tasks = list(itertools.combinations(self.selected_labels, 2))
         D = []
@@ -196,6 +196,7 @@ class SDT:
         print(df)
         df = df.stack().reset_index(level=0, drop=True)
         df = df.to_frame()
+        """
 
 def plot_matrix(cm, classes, title):
     fig, ax = plt.subplots()
@@ -286,8 +287,8 @@ for i, col in enumerate(st.columns(len(sdt.selected_labels))):
     col.write(f"{train_examples}/{test_examples} ")
     col.write(f"train/test")
 
-if st.button('Get Summary'):
-    sdt.get_summary()
+#if st.button('Get Summary'):
+#    sdt.get_summary()
 
 # Downselect or upselect parameters based on user input
 sdt.selected_parameters = st.multiselect('Select the parameters to use for analysis and classification:', sdt.parameters, sdt.selected_parameters)
@@ -407,6 +408,12 @@ if st.checkbox('Set Decision Tree Depth'):
 else:
     tree_depth = None
 
+col1, col2, col3 = st.columns(3)
+dt_diagram_fontize = col1.number_input(label='Diagram Font Size',min_value=12,step=1,value=25)
+dt_diagram_width = col2.number_input(label='Diagram Width',min_value=2,step=1,value=15)
+dt_diagram_height = col3.number_input(label='Diagram Height',min_value=2,step=1,value=15)
+
+
 if st.button('Train and Evaluate Decision Tree Classifer Based On Current Train/Test Split'):
     y_train = sdt.training_data['label'].to_numpy()
     x_train = sdt.training_data[sdt.selected_parameters].to_numpy()
@@ -415,11 +422,11 @@ if st.button('Train and Evaluate Decision Tree Classifer Based On Current Train/
 
     dt_clf = DecisionTreeClassifier(criterion="entropy", random_state=77, max_depth=tree_depth).fit(x_train, y_train)
 
-    fig, ax = plt.subplots(figsize=(20, 10))
+    fig, ax = plt.subplots(figsize=(dt_diagram_width, dt_diagram_height))
     _ = tree.plot_tree(dt_clf, ax=ax,
                        feature_names=sdt.selected_parameters,
                        class_names=sdt.selected_labels,
-                       filled=False, impurity=False, rounded=False, label='none', precision=2, fontsize=18)
+                       filled=False, impurity=False, rounded=False, label='none', precision=2, fontsize=dt_diagram_fontize)
     ax.properties()['children'] = [replace_text(i) for i in ax.properties()['children']]
     st.pyplot(fig)
 
