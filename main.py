@@ -7,11 +7,18 @@ import pandas as pd
 # Classification Metrics and Classifiers
 from sklearn import tree
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.neural_network import MLPClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+
+
+
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.model_selection import StratifiedShuffleSplit, cross_val_score
 
 # Plotting
-
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 import seaborn as sns
@@ -421,7 +428,7 @@ if st.button('Train and Evaluate Decision Tree Classifer Based On Current Train/
     y_test = sdt.testing_data['label'].to_numpy()
     x_test = sdt.testing_data[sdt.selected_parameters].to_numpy()
 
-    dt_clf = DecisionTreeClassifier(criterion="entropy", random_state=77, max_depth=tree_depth).fit(x_train, y_train)
+    dt_clf = DecisionTreeClassifier(criterion="entropy",random_state=77, max_depth=tree_depth).fit(x_train, y_train)
 
     fig, ax = plt.subplots(figsize=(dt_diagram_width, dt_diagram_height))
     _ = tree.plot_tree(dt_clf, ax=ax,
@@ -432,43 +439,149 @@ if st.button('Train and Evaluate Decision Tree Classifer Based On Current Train/
     st.pyplot(fig)
 
     cm = confusion_matrix(y_test, dt_clf.predict(x_test))
-    confusion_fig = plot_matrix(cm, np.unique(y_test),
-                                f'Decision Tree Accuracy {np.sum(np.diag(cm)) / np.sum(cm) * 100 :.02f} %')
+    confusion_fig = plot_matrix(cm, np.unique(y_test), f'Decision Tree Accuracy {np.sum(np.diag(cm)) / np.sum(cm) * 100 :.02f} %')
     st.pyplot(confusion_fig)
     st.dataframe(compute_metrics(confusion_matrix=cm, class_labels=np.unique(y_test)).set_index('label'))
 
+
 if st.button('Evaluate Classifer Using 5-Fold Validation Over A Varitey of Train/Test Splits'):
-    # Define Classifers to Use
-    models = {'classifers': ['Decision Tree'],
+
+    models = {'classifers': ['Decision Tree','Bayes','SVM','KNN'],
               'Decision Tree': DecisionTreeClassifier(criterion='entropy', random_state=77, max_depth=tree_depth),
+              'Bayes': GaussianNB(),
+              'SVM': SVC(),
+              'MLP': MLPClassifier(),
+              'KNN': KNeighborsClassifier(),
+              'RF': RandomForestClassifier(n_estimators=100,  max_depth=tree_depth),
               'inputs': sdt.selected_parameters,
               'x_data': sdt.data[sdt.selected_parameters].to_numpy(),
               'y_data': sdt.data['label'].to_numpy()
               }
 
     train_sizes = np.arange(.1, 1, .1)
-    colors = ['k', 'r', 'g']
-    markers = ['o', 'x', 'd']
+    colors = ['k','r','g','b','darkorange','k','k'] #['k', 'r', 'g']
+    markers = ['o', 'd', 's', 'P', 'p', '8']
     n = 5
     fig = plt.figure(figsize=(10, 8))
     for i, classifer in enumerate(models['classifers']):
         avgs = []
         stds = []
+        mins = []
+        maxs = []
+        min_max = []
         splits = []
         for test_percentage in train_sizes:
             clf = models[classifer]
             cv = StratifiedShuffleSplit(n_splits=n, test_size=test_percentage, random_state=0)
+
+            # Cross validation for stratified  splits of data
+            # https://scikit-learn.org/stable/modules/cross_validation.html
+            # https://stackoverflow.com/questions/73752417/is-it-necessary-to-use-cross-validation-after-data-is-split-using-stratifiedshuf
+
             scores = cross_val_score(clf, models['x_data'], models['y_data'], cv=cv)
             split = str(round(1 - test_percentage, 2)) + '/' + str(round(test_percentage, 2))
             avgs.append(scores.mean())
             stds.append(scores.std())
+            mins.append(scores.mean() - scores.min())
+            maxs.append(scores.max() - scores.mean() )
             splits.append(split)
+
         plt.xticks(range(len(splits)), splits, rotation=45)
-        plt.plot(range(len(splits)), avgs, label=classifer, marker=markers[i], markersize=15, linestyle='--', color='k')
+        plt.plot(range(len(splits)), avgs, label=classifer, marker=markers[i], markersize=10, linestyle='--', color=colors[i])
         plt.errorbar(range(len(splits)), avgs, stds, capsize=10, color=colors[i], linestyle='None')
+        #plt.errorbar(range(len(splits)), avgs, yerr=maxs, capsize=0, color=colors[i], linestyle='--', lolims=True,alpha=.5)
+        #plt.errorbar(range(len(splits)), avgs, yerr=mins, capsize=0, color=colors[i], linestyle='--', uplims=True,alpha=.5)
+        plt.errorbar(range(len(splits)), avgs, yerr=[mins,maxs], capsize=5, color=colors[i],linestyle='--')
+
     plt.ylabel('Accuracy')
     plt.xlabel('Train / Test %')
     plt.legend(bbox_to_anchor=(1.1, 1.05))
     plt.ylim(top=1)
     plt.locator_params(axis='y', nbins=20)
     st.pyplot(fig)
+
+
+def plot_confusion_matrix(cm, cms, classes,cmap=plt.cm.jet):
+    """
+    This function prints and plots the confusion matrix.
+    Normalization can be applied by setting `normalize=True`.
+    """
+    from numpy.ma import masked_array
+
+    cm = np.around(cm)
+    cms = np.around(cms)
+
+    fig = plt.figure(figsize=(15,15))
+    fontsize = 12
+
+    diag_indices = np.diag_indices(cm.shape[0])
+    fig, ax = plt.subplots()
+    diag_cm = masked_array(cm, cm != cm[diag_indices])
+    off_diag_cm = masked_array(cm, cm == cm[diag_indices])
+
+    pb = ax.imshow(off_diag_cm, interpolation='nearest', cmap=plt.cm.Reds, vmin=0, vmax=np.max(off_diag_cm) * 2)
+    cbb = plt.colorbar(pb, shrink=0.5, location='top',boundaries=np.around(np.linspace(np.min(off_diag_cm), np.max(off_diag_cm), 5)))
+    cbb.ax.set_title('Incorrect \n Predictions', fontsize=fontsize)
+    cbb.solids.set_edgecolor("face")
+    cbb.ax.tick_params(labelsize=fontsize-2)
+
+    pa = ax.imshow(diag_cm, interpolation='nearest',cmap=plt.cm.Greens,vmin=np.min(diag_cm)/2,vmax=np.max(diag_cm))
+    cba = plt.colorbar(pa,location='right', shrink=0.75,boundaries=np.around(np.linspace(np.min(diag_cm), np.max(diag_cm), 5)))
+    cba.solids.set_edgecolor("face")
+    cba.ax.set_title('      Correct \n           Predictions', fontsize=fontsize)
+    cba.ax.tick_params(labelsize=fontsize-2)
+
+    vmin = np.min(cm)
+    vmax = np.max(cm)
+
+    tick_marks = np.arange(len(classes))
+    plt.xticks(tick_marks, classes, rotation=45,fontsize=fontsize)
+    plt.yticks(tick_marks, classes,fontsize=fontsize)
+
+    thresh = cm.max() / 2
+
+    for i in range(cm.shape[0]):
+        for j in range(cm.shape[1]):
+            plt.text(j, i, '{0:.1f}'.format(cm[i, j]) + '\n$\pm$' + '{0:.1f}'.format(cms[i, j]),
+                     horizontalalignment="center",
+                     verticalalignment="center", fontsize=fontsize-2,
+                     color="white" if cm[i, j] > thresh else "black"
+                     )
+
+    plt.ylabel('True label',fontsize=fontsize)
+    plt.xlabel('Predicted label',fontsize=fontsize)
+    return fig
+
+from sklearn.model_selection import train_test_split
+
+if st.button('K-fold Holdout Confusion Matrix'):
+    confusion_matrices = []
+    X = sdt.data[sdt.selected_parameters].to_numpy()
+    Y = sdt.data['label'].to_numpy()
+    class_labels = np.unique(Y)
+    for i in range(5):
+        x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size = test_percentage, random_state = i,shuffle=True,stratify=Y)
+        dt_clf = DecisionTreeClassifier(criterion="entropy", random_state=77, max_depth=tree_depth).fit(x_train,y_train)
+        cm = confusion_matrix(y_test, dt_clf.predict(x_test), labels=class_labels)
+
+        #print('cm',y_test, dt_clf.predict(x_test))
+        #print(len(x_train),len(x_test),len(y_train),len(y_test), test_percentage)
+        #print('ytrain',np.unique(y_train, return_counts=True))
+        #print('y test',np.unique(y_test, return_counts=True))
+        #print('ypred', np.unique(dt_clf.predict(x_test), return_counts=True))
+        #print(len(x_train),x_train)
+        #print(cm,sum(sum(cm)))
+
+        confusion_matrices.append(cm)
+
+    cm_stack = np.stack(confusion_matrices,-1)
+    cm_avg = np.mean(cm_stack,2)
+    cm_std = np.std(cm_stack, 2)
+    #print(cm_stack.shape)
+
+    fig = plot_confusion_matrix(cm_avg, cm_std, class_labels, cmap=plt.cm.Blues)
+    st.pyplot(fig)
+
+
+
+    #plot_confusion_matrix(means, stds, classes=classes_list)
