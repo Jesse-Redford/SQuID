@@ -26,18 +26,18 @@ Construction of a multi-class discrimination matrix and systematic selection of 
 
 https://authors.elsevier.com/sd/article/S0278-6125(23)00152-8
 
-@article{REDFORD2023131,
-title = {Construction of a multi-class discrimination matrix and systematic selection of areal texture parameters for quantitative surface and defect classification},
-journal = {Journal of Manufacturing Systems},
-volume = {71},
-pages = {131-143},
-year = {2023},
-issn = {0278-6125},
-doi = {https://doi.org/10.1016/j.jmsy.2023.08.002},
-url = {https://www.sciencedirect.com/science/article/pii/S0278612523001528},
-author = {Jesse Redford and Brigid Mullany},
-keywords = {Surface characterization, Feature selection, Defect classification},
-}
+    @article{REDFORD2023131,
+    title = {Construction of a multi-class discrimination matrix and systematic selection of areal texture parameters for quantitative surface and defect classification},
+    journal = {Journal of Manufacturing Systems},
+    volume = {71},
+    pages = {131-143},
+    year = {2023},
+    issn = {0278-6125},
+    doi = {https://doi.org/10.1016/j.jmsy.2023.08.002},
+    url = {https://www.sciencedirect.com/science/article/pii/S0278612523001528},
+    author = {Jesse Redford and Brigid Mullany},
+    keywords = {Surface characterization, Feature selection, Defect classification},
+    }
 
 To cite this repository in publications: 
  
