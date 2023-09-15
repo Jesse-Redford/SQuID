@@ -1,3 +1,4 @@
+# GUI
 import streamlit as st
 
 # General Data-processing
@@ -12,8 +13,6 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.neural_network import MLPClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
-
-
 
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.model_selection import StratifiedShuffleSplit, cross_val_score
@@ -444,7 +443,7 @@ if st.button('Train and Evaluate Decision Tree Classifer Based On Current Train/
     st.dataframe(compute_metrics(confusion_matrix=cm, class_labels=np.unique(y_test)).set_index('label'))
 
 
-if st.button('Evaluate Classifer Using 5-Fold Validation Over A Varitey of Train/Test Splits'):
+if st.button('Evaluate Classifer Using 5-Fold Cross-Validation Over A Variety of Train/Test Splits'):
 
     models = {'classifers': ['Decision Tree','Bayes','SVM','KNN'],
               'Decision Tree': DecisionTreeClassifier(criterion='entropy', random_state=77, max_depth=tree_depth),
@@ -554,7 +553,7 @@ def plot_confusion_matrix(cm, cms, classes,cmap=plt.cm.jet):
 
 from sklearn.model_selection import train_test_split
 
-if st.button('K-fold Holdout Confusion Matrix'):
+if st.button('5-fold Holdout Confusion Matrix'):
     confusion_matrices = []
     X = sdt.data[sdt.selected_parameters].to_numpy()
     Y = sdt.data['label'].to_numpy()

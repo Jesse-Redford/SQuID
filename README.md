@@ -5,7 +5,7 @@
 ---
 
 SQuID aims to provide an exploratory data analysis and Auto ML framework for surface metrology applications.
-The SQuID interface provides a systematic and interpretable approach for developing automated systems for classifying surfaces defects.
+The SQuID interface provides a systematic and interpretable approach for developing automated systems for classifying surfaces textures and defects.
 
 Try out the beta version at the link below.
 
@@ -15,14 +15,29 @@ https://jesse-redford-squid-main-otrfh7.streamlit.app/
 
 ---
 
-Shoot me an email at tredford@uncc.edu
+Shoot me an email at tredford@charlotte.edu
 
 
-
-### License & Citation
+### Paper & Citation
 
 ---
 
+Construction of a multi-class discrimination matrix and systematic selection of areal texture parameters for quantitative surface and defect classification
+
+https://authors.elsevier.com/sd/article/S0278-6125(23)00152-8
+
+@article{REDFORD2023131,
+title = {Construction of a multi-class discrimination matrix and systematic selection of areal texture parameters for quantitative surface and defect classification},
+journal = {Journal of Manufacturing Systems},
+volume = {71},
+pages = {131-143},
+year = {2023},
+issn = {0278-6125},
+doi = {https://doi.org/10.1016/j.jmsy.2023.08.002},
+url = {https://www.sciencedirect.com/science/article/pii/S0278612523001528},
+author = {Jesse Redford and Brigid Mullany},
+keywords = {Surface characterization, Feature selection, Defect classification},
+}
 
 To cite this repository in publications: 
  
@@ -35,8 +50,6 @@ To cite this repository in publications:
     howpublished = {\url{https://github.com/Jesse-Redford/SQuID.git}}}
 
 Copyright (c) 2022, Jesse Redford.
-
-SQuID source code is licensed under the MIT License.
 
 
 ### Resources
