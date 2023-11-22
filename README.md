@@ -1,10 +1,10 @@
 
-# SQuID<sup>(U+2122)<sub>
+# SQuID™
 ### Surface Quality and Inspection Descriptions 
 
 ---
 
-SQuID:tm: aims to provide an exploratory data analysis and Auto ML framework for surface classification.
+SQuID™ aims to provide an exploratory data analysis and Auto ML framework for surface classification.
 
 Try out the beta version at the link below.
 
