@@ -1,5 +1,5 @@
 
-# SQuID:tm:
+# SQuID<sup>(U+2122)<sub>
 ### Surface Quality and Inspection Descriptions 
 
 ---
