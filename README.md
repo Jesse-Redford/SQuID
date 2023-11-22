@@ -1,11 +1,10 @@
 
-# SQuID 
+# SQuID:tm:
 ### Surface Quality and Inspection Descriptions 
 
 ---
 
-SQuID aims to provide an exploratory data analysis and Auto ML framework for surface metrology applications.
-The SQuID interface provides a systematic and interpretable approach for developing automated systems for classifying surfaces textures and defects.
+SQuID:tm: aims to provide an exploratory data analysis and Auto ML framework for surface classification.
 
 Try out the beta version at the link below.
 
