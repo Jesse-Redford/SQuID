@@ -14,7 +14,7 @@ https://jesse-redford-squid-main-otrfh7.streamlit.app/
 
 ---
 
-Shoot me an email at tredford@charlotte.edu
+Shoot me an email at jesse.k.redford@gmail.com 
 
 
 ### Paper & Citation
